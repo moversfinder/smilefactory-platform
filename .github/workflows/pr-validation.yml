@@ -1,0 +1,47 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+jobs:
+  validate:
+    name: Validate PR metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title contains JIRA key
+        uses: actions-ecosystem/action-regex-match@v2
+        id: title
+        with:
+          text: ${{ github.event.pull_request.title }}
+          regex: '^(SMILE|SF)-\d+\s*:\s*.+$'
+
+      - name: Fail if title invalid
+        if: ${{ steps.title.outputs.match == '' }}
+        run: |
+          echo "PR title must start with SMILE-<number> or SF-<number>: ... (e.g., SMILE-123: feat(...): description)" && exit 1
+
+      - name: Check branch name convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if echo "$BRANCH" | grep -Eq '^(feature|fix|docs|chore|refactor)/(SMILE|SF)-[0-9]+-[a-z0-9-]+$'; then
+            echo "Branch OK: $BRANCH"
+          else
+            echo "Branch must be like feature/SMILE-123-short-slug or feature/SF-123-short-slug" && exit 1
+          fi
+
+      - name: Check PR body contains JIRA link
+        uses: actions-ecosystem/action-regex-match@v2
+        id: body
+        with:
+          text: ${{ github.event.pull_request.body }}
+          regex: 'https?://[^ ]+/browse/(SMILE|SF)-[0-9]+'
+
+      - name: Fail if JIRA link missing
+        if: ${{ steps.body.outputs.match == '' }}
+        run: |
+          echo "PR body must include a JIRA link (e.g., https://<your-domain>/browse/SMILE-123)" && exit 1
+
+      - name: Summary
+        run: echo "✅ PR validation checks passed"
+

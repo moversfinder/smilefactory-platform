@@ -159,4 +159,15 @@ Examples:
 
 Remember: We're building Zimbabwe's innovation future together! 🇿🇼
 
+
+---
+
+## Quick PR Checklist (lightweight)
+- Title format: `<PROJECTKEY>-<issue-number>: type(scope): short description`
+- Branch naming: `feature|fix|docs/<PROJECTKEY>-<issue-number>-<slug>`
+- Include Jira link in PR body
+- Fill test steps; attach screenshots for UI changes
+- Lint, typecheck, unit tests pass
+- Update OpenAPI/specs if API changed
+
 **Questions?** Don't hesitate to ask - we're here to help! 🤝

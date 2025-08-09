@@ -23,41 +23,12 @@ This document establishes enterprise-grade coding standards, documentation conve
 ## 🏗️ **Technology Stack Standards**
 
 ### **Frontend Standards**
-```typescript
-// React Component Standards
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Button, Typography, Box } from '@mui/material';
-
-interface ComponentProps {
-  title: string;
-  onAction: (data: string) => void;
-  isLoading?: boolean;
-}
-
-/**
- * Example component following enterprise standards
- * @param props - Component properties
- * @returns JSX element
- */
-export const ExampleComponent: React.FC<ComponentProps> = ({
-  title,
-  onAction,
-  isLoading = false
-}) => {
-  const [localState, setLocalState] = useState<string>('');
-  const dispatch = useDispatch();
-  
-  // Component logic here
-  
-  return (
-    <Box>
-      <Typography variant="h4">{title}</Typography>
-      {/* Component JSX */}
-    </Box>
-  );
-};
-```
+**Component Design Principles**:
+- **TypeScript Interfaces**: Well-defined props with strict typing
+- **Functional Components**: Use React functional components with hooks
+- **State Management**: Redux for global state, local state for component-specific data
+- **Material-UI**: Consistent design system with proper theming
+- **Documentation**: JSDoc comments for all components and functions
 
 **Frontend Technology Requirements**:
 - **React 18+** with TypeScript (strict mode enabled)
@@ -67,49 +38,12 @@ export const ExampleComponent: React.FC<ComponentProps> = ({
 - **ESLint + Prettier** with pre-commit hooks
 
 ### **Backend Standards**
-```java
-/**
- * Service class following enterprise standards
- * 
- * @author Development Team
- * @version 1.0
- * @since 2024-01-01
- */
-@Service
-@Transactional
-@Slf4j
-public class UserProfileService {
-    
-    private final UserRepository userRepository;
-    private final ProfileMapper profileMapper;
-    
-    public UserProfileService(UserRepository userRepository, 
-                             ProfileMapper profileMapper) {
-        this.userRepository = userRepository;
-        this.profileMapper = profileMapper;
-    }
-    
-    /**
-     * Creates a new user profile
-     * 
-     * @param profileRequest Profile creation request
-     * @return Created profile response
-     * @throws ProfileCreationException if profile creation fails
-     */
-    public ProfileResponse createProfile(ProfileRequest profileRequest) {
-        log.info("Creating profile for user: {}", profileRequest.getUserId());
-        
-        try {
-            // Service logic here
-            return profileMapper.toResponse(savedProfile);
-        } catch (Exception e) {
-            log.error("Failed to create profile for user: {}", 
-                     profileRequest.getUserId(), e);
-            throw new ProfileCreationException("Profile creation failed", e);
-        }
-    }
-}
-```
+**Service Design Principles**:
+- **Spring Boot Annotations**: Proper use of @Service, @Transactional, @Slf4j
+- **Dependency Injection**: Constructor injection for all dependencies
+- **JavaDoc Documentation**: Comprehensive documentation for all public methods
+- **Exception Handling**: Proper exception handling with logging
+- **Logging**: Structured logging with appropriate log levels
 
 **Backend Technology Requirements**:
 - **Java 17+** with Spring Boot 3.x
@@ -121,70 +55,18 @@ public class UserProfileService {
 ## 📝 **Code Documentation Standards**
 
 ### **JavaDoc Standards**
-```java
-/**
- * Brief description of the class purpose
- * 
- * <p>Detailed description of the class functionality,
- * including usage examples and important notes.</p>
- * 
- * @author Author Name
- * @version 1.0
- * @since 2024-01-01
- * @see RelatedClass
- */
-public class ExampleClass {
-    
-    /**
-     * Brief description of the method
-     * 
-     * @param parameter1 Description of parameter1
-     * @param parameter2 Description of parameter2
-     * @return Description of return value
-     * @throws ExceptionType Description of when this exception is thrown
-     * @since 1.0
-     */
-    public ReturnType methodName(Type parameter1, Type parameter2) 
-            throws ExceptionType {
-        // Method implementation
-    }
-}
-```
+**Documentation Requirements**:
+- **Class Documentation**: Brief description with detailed functionality notes
+- **Method Documentation**: Parameters, return values, and exceptions documented
+- **Author Information**: Include @author, @version, and @since tags
+- **Cross-References**: Use @see tags for related classes and methods
 
 ### **TypeScript Documentation Standards**
-```typescript
-/**
- * Interface describing user profile data
- * 
- * @interface UserProfile
- * @since 1.0.0
- */
-interface UserProfile {
-  /** Unique user identifier */
-  id: string;
-  /** User's display name */
-  name: string;
-  /** User's email address */
-  email: string;
-  /** Profile completion percentage (0-100) */
-  completionPercentage: number;
-}
-
-/**
- * Hook for managing user profile state
- * 
- * @param userId - The ID of the user whose profile to manage
- * @returns Object containing profile data and management functions
- * 
- * @example
- * ```typescript
- * const { profile, updateProfile, isLoading } = useUserProfile('user-123');
- * ```
- */
-export const useUserProfile = (userId: string) => {
-  // Hook implementation
-};
-```
+**Documentation Requirements**:
+- **Interface Documentation**: Clear descriptions for all interfaces and types
+- **Property Documentation**: Document all interface properties with JSDoc comments
+- **Hook Documentation**: Document parameters, return values, and usage examples
+- **Version Information**: Include @since tags for version tracking
 
 ## 🧪 **Testing Standards**
 
@@ -195,128 +77,38 @@ export const useUserProfile = (userId: string) => {
 - **Mocking**: Use appropriate mocking for external dependencies
 
 ### **Frontend Testing Standards**
-```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { store } from '../store';
-import { UserProfile } from './UserProfile';
-
-describe('UserProfile Component', () => {
-  const renderWithProvider = (component: React.ReactElement) => {
-    return render(
-      <Provider store={store}>
-        {component}
-      </Provider>
-    );
-  };
-
-  describe('when user profile is loaded', () => {
-    it('should display user information correctly', async () => {
-      // Given
-      const mockUser = { id: '1', name: 'John Doe', email: 'john@example.com' };
-      
-      // When
-      renderWithProvider(<UserProfile userId="1" />);
-      
-      // Then
-      await waitFor(() => {
-        expect(screen.getByText('John Doe')).toBeInTheDocument();
-        expect(screen.getByText('john@example.com')).toBeInTheDocument();
-      });
-    });
-  });
-});
-```
+**Testing Requirements**:
+- **React Testing Library**: Use for component testing with user-centric queries
+- **Provider Wrapper**: Wrap components with Redux provider for testing
+- **Given-When-Then**: Structure tests with clear arrange, act, assert pattern
+- **Async Testing**: Use waitFor for asynchronous operations
+- **Mock Data**: Create realistic mock data for testing scenarios
 
 ### **Backend Testing Standards**
-```java
-@ExtendWith(MockitoExtension.class)
-class UserProfileServiceTest {
-    
-    @Mock
-    private UserRepository userRepository;
-    
-    @Mock
-    private ProfileMapper profileMapper;
-    
-    @InjectMocks
-    private UserProfileService userProfileService;
-    
-    @Test
-    @DisplayName("Should create profile successfully when valid request provided")
-    void shouldCreateProfileSuccessfully() {
-        // Given
-        ProfileRequest request = ProfileRequest.builder()
-            .userId("user-123")
-            .name("John Doe")
-            .build();
-        
-        User savedUser = new User();
-        ProfileResponse expectedResponse = new ProfileResponse();
-        
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(profileMapper.toResponse(savedUser)).thenReturn(expectedResponse);
-        
-        // When
-        ProfileResponse result = userProfileService.createProfile(request);
-        
-        // Then
-        assertThat(result).isEqualTo(expectedResponse);
-        verify(userRepository).save(any(User.class));
-        verify(profileMapper).toResponse(savedUser);
-    }
-}
-```
+**Testing Requirements**:
+- **JUnit 5**: Use for unit testing with descriptive test names
+- **Mockito**: Mock external dependencies for isolated testing
+- **Given-When-Then**: Structure tests with clear arrange, act, assert pattern
+- **Builder Pattern**: Use builders for creating test data objects
+- **Verification**: Verify mock interactions and assertions
 
 ## 🔧 **Code Formatting and Linting**
 
-### **ESLint Configuration**
-```json
-{
-  "extends": [
-    "@typescript-eslint/recommended",
-    "react-hooks/recommended",
-    "prettier"
-  ],
-  "rules": {
-    "@typescript-eslint/no-unused-vars": "error",
-    "@typescript-eslint/explicit-function-return-type": "warn",
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-    "prefer-const": "error",
-    "no-var": "error"
-  }
-}
-```
+### **Code Formatting Tools**
+**ESLint Configuration**:
+- **TypeScript Rules**: Strict TypeScript linting with recommended rules
+- **React Hooks**: Enforce React hooks rules and dependencies
+- **Code Quality**: No unused variables, prefer const over let
 
-### **Prettier Configuration**
-```json
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "printWidth": 80,
-  "tabWidth": 2,
-  "useTabs": false
-}
-```
+**Prettier Configuration**:
+- **Consistent Formatting**: Semicolons, trailing commas, single quotes
+- **Line Length**: 80 characters maximum
+- **Indentation**: 2 spaces, no tabs
 
-### **Java Checkstyle Configuration**
-```xml
-<module name="Checker">
-  <module name="TreeWalker">
-    <module name="LineLength">
-      <property name="max" value="120"/>
-    </module>
-    <module name="Indentation">
-      <property name="basicOffset" value="4"/>
-    </module>
-    <module name="NeedBraces"/>
-    <module name="LeftCurly"/>
-    <module name="RightCurly"/>
-  </module>
-</module>
-```
+**Java Checkstyle**:
+- **Line Length**: 120 characters maximum
+- **Indentation**: 4 spaces for Java code
+- **Braces**: Consistent brace placement and usage
 
 ## 📊 **Code Review Standards**
 
@@ -337,25 +129,18 @@ class UserProfileServiceTest {
 
 ## 🔄 **Git Workflow Standards**
 
-### **Branch Naming Convention**
-```
-feature/JIRA-123-user-profile-creation
-bugfix/JIRA-456-login-validation-error
-hotfix/JIRA-789-security-vulnerability
-release/v1.2.0
-```
+### **Git Workflow Standards**
+**Branch Naming Convention**:
+- **Feature**: `feature/JIRA-123-description`
+- **Bugfix**: `bugfix/JIRA-456-description`
+- **Hotfix**: `hotfix/JIRA-789-description`
+- **Release**: `release/v1.2.0`
 
-### **Commit Message Format**
-```
-type(scope): brief description
-
-Detailed description of the change, including:
-- What was changed
-- Why it was changed
-- Any breaking changes
-
-JIRA: PROJ-123
-```
+**Commit Message Format**:
+- **Type**: feat, fix, docs, style, refactor, test, chore
+- **Scope**: Component or module affected
+- **Description**: Brief description of changes
+- **Body**: Detailed explanation with JIRA ticket reference
 
 ### **Commit Types**
 - **feat**: New feature

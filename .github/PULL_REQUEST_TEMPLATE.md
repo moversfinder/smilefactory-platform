@@ -1,11 +1,14 @@
-# Pull Request
+# PR Title
+
+Format: <PROJECTKEY>-<issue-number>: type(scope): short description
+Example: SF-123: feat(community): add tab registry
 
 ## 📋 Description
 Brief description of what this PR does.
 
-## 🎯 JIRA Ticket
-- **Ticket**: SMILE-XXX
-- **Link**: [SMILE-XXX](https://your-jira-instance.atlassian.net/browse/SMILE-XXX)
+## 🎯 Jira
+- Issue: SF-123
+- Link: https://your-jira-domain/browse/SF-123
 
 ## 🔧 Type of Change
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
@@ -17,25 +20,28 @@ Brief description of what this PR does.
 - [ ] ⚡ Performance improvements
 - [ ] 🧪 Adding or updating tests
 
-## 🧪 Testing
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] Manual testing completed
-- [ ] No console errors or warnings
+## 🧪 How to test
+- Steps to reproduce and validate
+- Include sample data/fixtures if relevant
+
+## API
+- [ ] OpenAPI updated (if endpoints changed)
+- [ ] Contract tests added/updated
+- [ ] Backward compatible changes confirmed
 
 ## 📱 Frontend Checklist (if applicable)
-- [ ] UI matches design specifications
-- [ ] Responsive design works on mobile/tablet
-- [ ] Accessibility requirements met
-- [ ] Cross-browser testing completed
-- [ ] Performance impact assessed
+- [ ] Component structure follows feature-sliced
+- [ ] Types strict; no ts-ignore without justification
+- [ ] Accessibility checked (labels, roles, keyboard)
+- [ ] Performance considerations (memo, virtualization)
+- [ ] Screenshots / video attached
 
 ## 🔧 Backend Checklist (if applicable)
-- [ ] API endpoints documented
-- [ ] Database migrations included (if needed)
-- [ ] Security considerations addressed
-- [ ] Error handling implemented
-- [ ] Logging added where appropriate
+- [ ] DTOs only in controllers; entities not exposed
+- [ ] Validation annotations present; error schema returned
+- [ ] Transactions defined; idempotency considered where needed
+- [ ] Migrations added; indexes considered; tests updated
+- [ ] Logging includes traceId; no PII
 
 ## 📸 Screenshots (if applicable)
 Add screenshots or GIFs to demonstrate the changes.
@@ -47,8 +53,15 @@ List any related pull requests.
 Any additional information that reviewers should know.
 
 ## ✅ Review Checklist
-- [ ] Code follows project coding standards
-- [ ] Self-review completed
-- [ ] Documentation updated (if needed)
-- [ ] No merge conflicts
-- [ ] Branch is up to date with target branch
+- [ ] PR links to a Jira issue and uses correct title format
+- [ ] Branch named feature/<PROJECTKEY>-<issue-number>-<slug>
+- [ ] Conventional commits used; Smart Commit applied if appropriate
+- [ ] Unit/integration/E2E tests added/updated; coverage maintained
+- [ ] OpenAPI/specs updated
+- [ ] Lint/format/typecheck pass
+- [ ] Security review done if touching auth/data
+- [ ] Docs updated (README/ADRs)
+- [ ] No merge conflicts; target branch up-to-date
+
+---
+Co-authored by Augment Code

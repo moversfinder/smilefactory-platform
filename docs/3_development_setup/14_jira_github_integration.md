@@ -1,7 +1,7 @@
-# JIRA-GitHub Integration Guide
+# JIRA-GitHub Integration & Automation
 
 ## 🎯 **Overview**
-This guide explains how to set up and use the JIRA-GitHub integration for the SmileFactory platform, enabling seamless tracking between development work and project management.
+This comprehensive guide covers the setup, configuration, and automated workflows for JIRA-GitHub integration on the SmileFactory platform, enabling seamless tracking between development work and project management with automated status updates.
 
 ## 🔗 **Integration Setup**
 
@@ -231,4 +231,40 @@ git commit -m "SMILE-123: Merge authentication implementation #done #time 8h"
 - [ ] Dashboard widgets created
 - [ ] Reporting schedule established
 
-**This integration ensures seamless collaboration between development work and project management, providing full traceability from requirements to deployment.** 🎉
+## 🔄 **Automated Workflow Integration**
+
+### **Automation Goals**
+- **Automatic Status Updates**: GitHub events update JIRA issue status
+- **Seamless Linking**: Commits, PRs, and branches automatically link to JIRA
+- **Progress Tracking**: Real-time visibility of development progress in JIRA
+- **Quality Gates**: Automated validation and status transitions
+
+### **Key Benefits**
+- Reduced manual status updates (saves 2-3 hours/week per developer)
+- Complete traceability from requirements to deployment
+- Automatic documentation of development progress
+- Enhanced team coordination and visibility
+
+### **GitHub → JIRA Status Updates**
+
+#### **Branch Creation**
+- **Trigger**: Branch created with JIRA key
+- **Action**: Update JIRA issue status to "In Progress"
+- **Example**: `feature/SMILE-123-user-auth` created → SMILE-123 → "In Progress"
+
+#### **Pull Request Events**
+- **PR Created**: JIRA issue → "In Review" + PR link added to JIRA
+- **PR Approved**: JIRA issue → "Ready for Merge" + approval details
+- **PR Merged**: JIRA issue → "Done" (develop) or "Deployed" (main)
+
+#### **Deployment Events**
+- **Staging Deployment**: Merge to develop → JIRA issue → "In Staging"
+- **Production Deployment**: Merge to main → JIRA issue → "Deployed"
+
+### **Automated Quality Gates**
+- **Branch Naming Validation**: Ensures JIRA key is present
+- **PR Title Validation**: Validates JIRA ticket reference
+- **Status Synchronization**: Keeps JIRA and GitHub in sync
+- **Deployment Tracking**: Automatic deployment status updates
+
+**This comprehensive integration ensures seamless collaboration between development work and project management, providing full traceability from requirements to deployment with automated workflow management.** 🎉

@@ -58,42 +58,45 @@ The SmileFactory platform follows a modern, scalable architecture pattern using 
 ## 🔧 **Technology Stack Details**
 
 ### **Frontend Technologies**
-```
-React 18.2+              - Modern React with concurrent features
-TypeScript 4.9+          - Type-safe JavaScript development
-Redux Toolkit 1.9+       - Predictable state management
-RTK Query                - Data fetching and caching
-Material-UI 5.x          - React component library
-React Router 6.x         - Client-side routing
-Vite 4.x                 - Fast build tool and dev server
-Jest + Testing Library   - Testing framework
-ESLint + Prettier        - Code quality and formatting
-```
+**Core Framework Stack**:
+- **React 18.2+**: Modern React with concurrent features and improved performance
+- **TypeScript 4.9+**: Type-safe JavaScript development with strict mode
+- **Redux Toolkit 1.9+**: Predictable state management with modern Redux patterns
+- **RTK Query**: Efficient data fetching and caching solution
+
+**UI and Development Tools**:
+- **Material-UI 5.x**: Comprehensive React component library with theming
+- **React Router 6.x**: Client-side routing with modern navigation patterns
+- **Vite 4.x**: Fast build tool and development server with hot reload
+- **Jest + Testing Library**: Comprehensive testing framework for components
+- **ESLint + Prettier**: Code quality enforcement and consistent formatting
 
 ### **Backend Technologies**
-```
-Java 17+                 - Modern Java LTS version
-Spring Boot 3.x          - Enterprise application framework
-Spring Security 6.x      - Authentication and authorization
-Spring Data JPA          - Data access layer
-Spring WebSocket         - Real-time communication
-PostgreSQL 15+           - Primary relational database
-Redis 7.x                - Caching and session store
-Elasticsearch 8.x        - Search and analytics engine
-Maven 3.9+               - Build and dependency management
-JUnit 5                  - Testing framework
-```
+**Core Framework Stack**:
+- **Java 17+**: Modern Java LTS version with enhanced performance and features
+- **Spring Boot 3.x**: Enterprise application framework for microservices
+- **Spring Security 6.x**: Comprehensive authentication and authorization
+- **Spring Data JPA**: Simplified data access layer with repository patterns
+- **Spring WebSocket**: Real-time bidirectional communication support
+
+**Data and Infrastructure**:
+- **PostgreSQL 15+**: Primary relational database with advanced features
+- **Redis 7.x**: High-performance caching and session store
+- **Elasticsearch 8.x**: Powerful search and analytics engine
+- **Maven 3.9+**: Build automation and dependency management
+- **JUnit 5**: Modern testing framework with comprehensive assertions
 
 ### **Infrastructure Technologies**
-```
-Docker                   - Containerization
-Kubernetes               - Container orchestration
-AWS/Azure/GCP           - Cloud infrastructure
-Nginx                   - Reverse proxy and load balancer
-Jenkins/GitHub Actions  - CI/CD pipeline
-Prometheus + Grafana    - Monitoring and metrics
-ELK Stack               - Logging and analysis
-```
+**Containerization and Orchestration**:
+- **Docker**: Application containerization for consistent deployment
+- **Kubernetes**: Container orchestration with auto-scaling and management
+- **Cloud Platforms**: AWS/Azure/GCP for scalable infrastructure
+
+**DevOps and Monitoring**:
+- **Nginx**: Reverse proxy and load balancer for high availability
+- **Jenkins/GitHub Actions**: Automated CI/CD pipeline for deployment
+- **Prometheus + Grafana**: Comprehensive monitoring and metrics visualization
+- **ELK Stack**: Centralized logging and analysis (Elasticsearch, Logstash, Kibana)
 
 ## 🔄 **System Integration Patterns**
 
@@ -104,11 +107,18 @@ ELK Stack               - Logging and analysis
 - **Event-Driven**: Asynchronous messaging for decoupled services
 
 ### **Data Flow Architecture**
-```
-User Action → Frontend → API Gateway → Backend Service → Database
-     ↓
-WebSocket ← Notification Service ← Event Bus ← Database Changes
-```
+**Request Flow**:
+- **User Action**: User interacts with frontend interface
+- **Frontend Processing**: React components handle user input and state
+- **API Gateway**: Routes requests to appropriate backend services
+- **Backend Service**: Processes business logic and data operations
+- **Database**: Stores and retrieves data with ACID compliance
+
+**Real-time Notification Flow**:
+- **Database Changes**: Triggers events when data is modified
+- **Event Bus**: Distributes events to interested services
+- **Notification Service**: Processes events and generates notifications
+- **WebSocket**: Delivers real-time updates to connected clients
 
 ### **Caching Strategy**
 - **Browser Cache**: Static assets and API responses

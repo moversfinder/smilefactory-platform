@@ -9,15 +9,14 @@ The SmileFactory platform uses GitHub with an Enhanced GitHub Flow branching str
 ## 🌳 **Branching Strategy**
 
 ### **GitHub Flow for React + Java Spring Boot**
-```
-main (production)
-├── feature/frontend/JIRA-123-user-profile-ui
-├── feature/backend/JIRA-124-profile-api
-├── feature/fullstack/JIRA-125-ai-integration
-├── feature/infrastructure/JIRA-126-docker-setup
-├── hotfix/JIRA-456-security-patch
-└── experimental/JIRA-789-new-architecture
-```
+**Branch Structure**:
+- **main**: Production-ready code, always deployable
+- **feature/frontend/**: Frontend-specific features and UI components
+- **feature/backend/**: Backend API and business logic features
+- **feature/fullstack/**: Features requiring both frontend and backend changes
+- **feature/infrastructure/**: DevOps, deployment, and infrastructure changes
+- **hotfix/**: Critical production fixes requiring immediate deployment
+- **experimental/**: Research and experimental features for evaluation
 
 **GitHub Flow Principles**:
 - **Single main branch**: `main` is always deployable
@@ -102,17 +101,17 @@ main (production)
 ## 📝 **Commit Standards**
 
 ### **Commit Message Format**
-```
-type(scope): brief description
+**Standard Structure**:
+- **Header**: `type(scope): brief description`
+- **Body**: Detailed explanation of changes and reasoning
+- **Footer**: JIRA ticket reference and co-author information
 
-Detailed description of the change, including:
-- What was changed and why
-- Any breaking changes
-- Related issues or tickets
-
-JIRA: PROJ-123
-Co-authored-by: Developer Name <email@example.com>
-```
+**Required Elements**:
+- **Type**: feat, fix, docs, style, refactor, test, chore
+- **Scope**: Component or module affected (optional)
+- **Description**: Brief summary of changes
+- **JIRA Reference**: Link to project management ticket
+- **Co-authorship**: Credit for pair programming or collaboration
 
 ### **Commit Types**
 ```typescript

@@ -19,20 +19,12 @@ The ZbInnovation platform provides a comprehensive REST API with 138 endpoints s
 - **Input Validation**: Comprehensive request validation
 
 ### **Response Format**
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Operation completed successfully",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 100,
-    "totalPages": 5
-  }
-}
-```
+**Standard Response Structure**:
+- **Success**: Boolean indicating operation success
+- **Data**: Response payload containing requested information
+- **Message**: Human-readable status message
+- **Timestamp**: ISO 8601 formatted timestamp
+- **Pagination**: Page information for paginated responses
 
 ## 📋 **API Endpoint Categories**
 

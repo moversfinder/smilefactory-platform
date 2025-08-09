@@ -1,0 +1,359 @@
+name: JIRA Automation
+
+on:
+  pull_request:
+    types: [opened, closed, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+
+env:
+  JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+  JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+jobs:
+  jira-integration:
+    name: JIRA Ticket Management
+    runs-on: ubuntu-latest
+    if: ${{ env.JIRA_BASE_URL != '' && env.JIRA_EMAIL != '' && env.JIRA_API_TOKEN != '' }}
+    
+    steps:
+      - name: Extract JIRA key from PR title
+        uses: actions-ecosystem/action-regex-match@v2
+        id: jira_key
+        with:
+          text: ${{ github.event.pull_request.title }}
+          regex: '^(SMILE|SF)-(\d+)'
+      
+      - name: Skip if no JIRA key found
+        if: ${{ steps.jira_key.outputs.match == '' }}
+        run: |
+          echo "No JIRA key found in PR title. Skipping JIRA automation."
+          exit 0
+
+      - name: Set JIRA key variable
+        if: ${{ steps.jira_key.outputs.match != '' }}
+        id: set_jira_key
+        run: |
+          JIRA_KEY="${{ steps.jira_key.outputs.group1 }}-${{ steps.jira_key.outputs.group2 }}"
+          echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+          echo "Processing JIRA ticket: $JIRA_KEY"
+
+      - name: Check if JIRA ticket exists
+        if: ${{ steps.jira_key.outputs.match != '' }}
+        id: check_jira
+        run: |
+          JIRA_KEY="${{ steps.set_jira_key.outputs.jira_key }}"
+          
+          response=$(curl -s -w "%{http_code}" -o /tmp/jira_response.json \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY")
+          
+          if [ "$response" = "200" ]; then
+            echo "ticket_exists=true" >> $GITHUB_OUTPUT
+            echo "✅ JIRA ticket $JIRA_KEY exists"
+          else
+            echo "ticket_exists=false" >> $GITHUB_OUTPUT
+            echo "❌ JIRA ticket $JIRA_KEY does not exist"
+          fi
+
+      - name: Create JIRA ticket if not exists
+        if: ${{ steps.check_jira.outputs.ticket_exists == 'false' && github.event.action == 'opened' }}
+        run: |
+          JIRA_KEY="${{ steps.set_jira_key.outputs.jira_key }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          BRANCH="${{ github.head_ref }}"
+          
+          # Determine component and issue type based on branch name
+          if echo "$BRANCH" | grep -q "frontend\|P5"; then
+            COMPONENT="Frontend"
+            ISSUE_TYPE="Story"
+          elif echo "$BRANCH" | grep -q "backend\|P4"; then
+            COMPONENT="Backend" 
+            ISSUE_TYPE="Story"
+          else
+            COMPONENT="General"
+            ISSUE_TYPE="Task"
+          fi
+          
+          echo "Creating JIRA ticket: $JIRA_KEY"
+          echo "Component: $COMPONENT"
+          echo "Issue Type: $ISSUE_TYPE"
+          
+          # Create JIRA ticket
+          response=$(curl -s -w "%{http_code}" -o /tmp/create_response.json \
+            -X POST \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue" \
+            -d "{
+              \"fields\": {
+                \"project\": {
+                  \"key\": \"SMILE\"
+                },
+                \"summary\": \"$PR_TITLE\",
+                \"description\": {
+                  \"version\": 1,
+                  \"type\": \"doc\",
+                  \"content\": [
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Auto-created from GitHub Pull Request: \"
+                        },
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"$PR_URL\",
+                          \"marks\": [
+                            {
+                              \"type\": \"link\",
+                              \"attrs\": {
+                                \"href\": \"$PR_URL\"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Created by: $AUTHOR\"
+                        }
+                      ]
+                    },
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Branch: $BRANCH\"
+                        }
+                      ]
+                    },
+                    {
+                      \"type\": \"rule\"
+                    },
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Co-authored by \"
+                        },
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Augment Code\",
+                          \"marks\": [
+                            {
+                              \"type\": \"link\",
+                              \"attrs\": {
+                                \"href\": \"https://www.augmentcode.com/?utm_source=atlassian&utm_medium=jira_issue&utm_campaign=jira\"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                \"issuetype\": {
+                  \"name\": \"$ISSUE_TYPE\"
+                }
+              }
+            }")
+          
+          if [ "$response" = "201" ]; then
+            echo "✅ JIRA ticket $JIRA_KEY created successfully"
+          else
+            echo "❌ Failed to create JIRA ticket. Response code: $response"
+            cat /tmp/create_response.json
+          fi
+
+      - name: Update JIRA ticket status on PR events
+        if: ${{ steps.check_jira.outputs.ticket_exists == 'true' || (steps.check_jira.outputs.ticket_exists == 'false' && github.event.action == 'opened') }}
+        run: |
+          JIRA_KEY="${{ steps.set_jira_key.outputs.jira_key }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          
+          case "${{ github.event.action }}" in
+            "opened"|"ready_for_review")
+              echo "Transitioning $JIRA_KEY to 'In Review'"
+              # Transition to "In Review" (transition ID may vary by JIRA setup)
+              curl -s -X POST \
+                -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                -H "Accept: application/json" \
+                -H "Content-Type: application/json" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/transitions" \
+                -d '{"transition": {"id": "31"}}'
+              
+              # Add comment with PR link
+              curl -s -X POST \
+                -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                -H "Accept: application/json" \
+                -H "Content-Type: application/json" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+                -d "{
+                  \"body\": {
+                    \"version\": 1,
+                    \"type\": \"doc\",
+                    \"content\": [
+                      {
+                        \"type\": \"paragraph\",
+                        \"content\": [
+                          {
+                            \"type\": \"text\",
+                            \"text\": \"🔍 Pull Request ready for review: \"
+                          },
+                          {
+                            \"type\": \"text\",
+                            \"text\": \"$PR_URL\",
+                            \"marks\": [
+                              {
+                                \"type\": \"link\",
+                                \"attrs\": {
+                                  \"href\": \"$PR_URL\"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }"
+              ;;
+            "closed")
+              if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+                echo "Transitioning $JIRA_KEY to 'Done' (merged)"
+                # PR was merged - transition to Done
+                curl -s -X POST \
+                  -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                  -H "Accept: application/json" \
+                  -H "Content-Type: application/json" \
+                  "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/transitions" \
+                  -d '{"transition": {"id": "41"}}'
+                
+                # Add merge comment
+                curl -s -X POST \
+                  -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                  -H "Accept: application/json" \
+                  -H "Content-Type: application/json" \
+                  "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+                  -d "{
+                    \"body\": {
+                      \"version\": 1,
+                      \"type\": \"doc\",
+                      \"content\": [
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"✅ Pull Request merged successfully into ${{ github.event.pull_request.base.ref }}\"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }"
+              else
+                echo "Adding comment for closed PR (not merged)"
+                # PR was closed without merging
+                curl -s -X POST \
+                  -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                  -H "Accept: application/json" \
+                  -H "Content-Type: application/json" \
+                  "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+                  -d "{
+                    \"body\": {
+                      \"version\": 1,
+                      \"type\": \"doc\",
+                      \"content\": [
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"❌ Pull Request closed without merging\"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }"
+              fi
+              ;;
+          esac
+
+      - name: Handle PR review events
+        if: ${{ github.event_name == 'pull_request_review' && steps.check_jira.outputs.ticket_exists == 'true' }}
+        run: |
+          JIRA_KEY="${{ steps.set_jira_key.outputs.jira_key }}"
+          REVIEWER="${{ github.event.review.user.login }}"
+          REVIEW_STATE="${{ github.event.review.state }}"
+          
+          case "$REVIEW_STATE" in
+            "approved")
+              curl -s -X POST \
+                -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                -H "Accept: application/json" \
+                -H "Content-Type: application/json" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+                -d "{
+                  \"body\": {
+                    \"version\": 1,
+                    \"type\": \"doc\",
+                    \"content\": [
+                      {
+                        \"type\": \"paragraph\",
+                        \"content\": [
+                          {
+                            \"type\": \"text\",
+                            \"text\": \"✅ Pull Request approved by $REVIEWER\"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }"
+              ;;
+            "changes_requested")
+              curl -s -X POST \
+                -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+                -H "Accept: application/json" \
+                -H "Content-Type: application/json" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+                -d "{
+                  \"body\": {
+                    \"version\": 1,
+                    \"type\": \"doc\",
+                    \"content\": [
+                      {
+                        \"type\": \"paragraph\",
+                        \"content\": [
+                          {
+                            \"type\": \"text\",
+                            \"text\": \"🔄 Changes requested by $REVIEWER\"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }"
+              ;;
+          esac
+
+      - name: Summary
+        if: ${{ steps.jira_key.outputs.match != '' }}
+        run: |
+          echo "✅ JIRA automation completed for ticket: ${{ steps.set_jira_key.outputs.jira_key }}"
+          echo "🔗 JIRA URL: ${{ env.JIRA_BASE_URL }}/browse/${{ steps.set_jira_key.outputs.jira_key }}"

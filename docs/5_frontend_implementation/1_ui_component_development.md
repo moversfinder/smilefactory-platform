@@ -159,6 +159,39 @@ const themeOptions: ThemeOptions = {
 };
 
 export const theme = createTheme(themeOptions);
+
+// Standardized Profile Card Theme
+export const profileCardTheme = {
+  card: {
+    background: '#FFFFFF',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    padding: '24px',
+  },
+  avatar: {
+    background: '#4CAF50', // Green for ALL profiles
+    color: '#FFFFFF',
+    size: 80,
+  },
+  completion: {
+    background: '#4CAF50', // Green for ALL profiles
+    color: '#FFFFFF',
+  },
+  button: {
+    color: '#4CAF50', // Green for ALL profiles
+    borderColor: '#4CAF50',
+  },
+  profileTypeColors: {
+    innovator: '#4CAF50',
+    business_investor: '#2196F3',
+    mentor: '#9C27B0',
+    professional: '#009688',
+    industry_expert: '#3F51B5',
+    academic_student: '#2196F3',
+    academic_institution: '#673AB7',
+    organisation: '#1976D2',
+  },
+};
 ```
 
 ### **Custom Button Components**

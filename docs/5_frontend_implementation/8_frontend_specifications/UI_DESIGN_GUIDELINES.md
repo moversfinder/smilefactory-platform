@@ -176,29 +176,32 @@ This document provides comprehensive UI design guidelines for the ZbInnovation p
 - **Activity Summary**: Comprehensive overview of platform activity
 - **Quick Actions**: Profile-specific action buttons and shortcuts
 
-### **Profile Type-Specific Dashboard Themes**
+### **Profile Card Standardized Design**
 
-#### **Visual Theme System**
-**Innovator Theme (Green)**:
-- **Primary Color**: #4CAF50 (Material Green 500)
-- **Accent Color**: #81C784 (Material Green 300)
-- **Background**: #E8F5E8 (Light green tint)
-- **Icons**: Innovation-focused (lightbulb, rocket, gear)
-- **CTAs**: "Showcase Project", "Find Funding", "Build Team"
+#### **Unified Profile Card Styling**
+All profile cards use consistent styling with only the profile type label having different colors:
 
-**Business Investor Theme (Blue)**:
-- **Primary Color**: #2196F3 (Material Blue 500)
-- **Accent Color**: #64B5F6 (Material Blue 300)
-- **Background**: #E3F2FD (Light blue tint)
-- **Icons**: Finance-focused (trending up, dollar, portfolio)
-- **CTAs**: "Discover Projects", "Review Deals", "Track Portfolio"
+**Standard Card Design**:
+- **Background**: #FFFFFF (White card background)
+- **Border**: None or subtle 1px #E0E0E0
+- **Border Radius**: 12px
+- **Shadow**: 0 2px 8px rgba(0,0,0,0.1)
+- **Padding**: 24px
+- **Avatar Background**: #4CAF50 (Green for all profiles)
+- **Avatar Text**: #FFFFFF (White initials)
+- **Name Text**: #212121 (Dark gray)
+- **Summary Text**: #757575 (Medium gray)
+- **Completion Badge**: #4CAF50 background with #FFFFFF text
 
-**Mentor Theme (Purple)**:
-- **Primary Color**: #9C27B0 (Material Purple 500)
-- **Accent Color**: #BA68C8 (Material Purple 300)
-- **Background**: #F3E5F5 (Light purple tint)
-- **Icons**: Guidance-focused (school, people, star)
-- **CTAs**: "Find Mentees", "Share Knowledge", "Schedule Session"
+**Profile Type Label Colors** (Only element that varies):
+- **Innovator**: #4CAF50 (Green)
+- **Business Investor**: #2196F3 (Blue)
+- **Mentor**: #9C27B0 (Purple)
+- **Professional**: #009688 (Teal)
+- **Industry Expert**: #3F51B5 (Indigo)
+- **Academic Student**: #2196F3 (Blue) - as shown in reference
+- **Academic Institution**: #673AB7 (Deep Purple)
+- **Organisation**: #1976D2 (Navy Blue)
 
 ### **Dashboard Component Guidelines**
 **Widget Design Principles**:
@@ -218,15 +221,21 @@ This document provides comprehensive UI design guidelines for the ZbInnovation p
 ## 🎨 **Visual Design System**
 
 ### **Color Palette Guidelines**
-**Primary Colors** (Profile Type Themes):
-- **Innovator**: Green (#4CAF50)
-- **Investor**: Blue (#2196F3)
-- **Mentor**: Purple (#9C27B0)
-- **Professional**: Teal (#009688)
-- **Expert**: Indigo (#3F51B5)
-- **Student**: Orange (#FF9800)
-- **Institution**: Deep Purple (#673AB7)
-- **Organization**: Navy Blue (#1976D2)
+**Profile Type Label Colors** (Only for profile type badges/labels):
+- **Innovator**: #4CAF50 (Green)
+- **Business Investor**: #2196F3 (Blue)
+- **Mentor**: #9C27B0 (Purple)
+- **Professional**: #009688 (Teal)
+- **Industry Expert**: #3F51B5 (Indigo)
+- **Academic Student**: #2196F3 (Blue)
+- **Academic Institution**: #673AB7 (Deep Purple)
+- **Organisation**: #1976D2 (Navy Blue)
+
+**Standardized Profile Card Colors** (Used for all profile cards):
+- **Avatar Background**: #4CAF50 (Green for all profiles)
+- **Completion Badge**: #4CAF50 (Green for all profiles)
+- **Card Background**: #FFFFFF (White)
+- **Primary Actions**: #4CAF50 (Green)
 
 **Neutral Colors**:
 - **Text Primary**: #212121 (87% opacity)

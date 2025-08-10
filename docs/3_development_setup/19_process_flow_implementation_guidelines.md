@@ -437,6 +437,7 @@ export const useAutoSave = ({ step, data, enabled = true, interval = 30000 }: Us
 // ProfileTypeSelector.tsx
 import React, { useState } from 'react';
 import { ProfileType } from '../types/profile.types';
+import { profileCardTheme } from '../theme/profileCardTheme';
 
 interface ProfileTypeSelectorProps {
   onTypeSelect: (type: ProfileType) => void;
@@ -469,11 +470,15 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
     // ... other profile types
   ];
 
+  const getProfileTypeColor = (type: ProfileType) => {
+    return profileCardTheme.profileTypeColors[type] || '#4CAF50';
+  };
+
   return (
     <div className="profile-type-selector">
       <h2>What Best Describes You?</h2>
       <p>Choose the profile type that best matches your goals and interests</p>
-      
+
       <div className="profile-type-grid">
         {profileTypes.map((type) => (
           <div
@@ -482,14 +487,33 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
             onClick={() => onTypeSelect(type.id)}
             onMouseEnter={() => setHoveredType(type.id)}
             onMouseLeave={() => setHoveredType(null)}
+            style={{
+              backgroundColor: profileCardTheme.card.background,
+              borderRadius: profileCardTheme.card.borderRadius,
+              boxShadow: profileCardTheme.card.boxShadow,
+              padding: profileCardTheme.card.padding,
+            }}
           >
             <div className="type-header">
               <span className="type-emoji">{type.emoji}</span>
               <h3>{type.title}</h3>
+              <span
+                className="type-label"
+                style={{
+                  backgroundColor: getProfileTypeColor(type.id),
+                  color: '#FFFFFF',
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                }}
+              >
+                {type.title}
+              </span>
             </div>
-            
+
             <p className="type-description">{type.description}</p>
-            
+
             {(hoveredType === type.id || selectedType === type.id) && (
               <div className="type-details">
                 <div className="benefits">
@@ -509,7 +533,7 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
           </div>
         ))}
       </div>
-      
+
       {selectedType && (
         <div className="selection-confirmation">
           <p>You've selected: <strong>{profileTypes.find(t => t.id === selectedType)?.title}</strong></p>

@@ -197,6 +197,7 @@ All documentation is organized in numbered folders for logical progression:
 ### **1. Planning & Requirements** (`/docs/1_planning_and_requirements/`)
 - Project overview, user journeys, and feature specifications
 - Business requirements and platform specifications
+- **🔐 Authentication & Profile Creation Process Flows** - Comprehensive documentation for scalable implementation
 
 ### **2. Technical Architecture** (`/docs/2_technical_architecture/`)
 - System architecture and microservices design
@@ -209,6 +210,8 @@ All documentation is organized in numbered folders for logical progression:
 - **Comprehensive code review process** and Git workflows
 - Team collaboration, onboarding, and contribution guidelines
 - CI/CD pipeline and automated quality assurance
+- **🎯 Process Flow JIRA Workflow** - Automated tracking for authentication and profile creation
+- **🛠️ Process Flow Implementation Guidelines** - Detailed technical guidelines for development teams
 
 ### **4. Backend Implementation** (`/docs/4_backend_implementation/`)
 - Microservices development and API implementation

@@ -67,23 +67,45 @@ jobs:
           AUTHOR="${{ github.event.pull_request.user.login }}"
           BRANCH="${{ github.head_ref }}"
           
-          # Determine component and issue type based on branch name
+          # Determine component, issue type, and epic based on branch name
           if echo "$BRANCH" | grep -q "frontend\|P5"; then
             COMPONENT="Frontend"
             ISSUE_TYPE="Story"
+            if echo "$BRANCH" | grep -q "auth"; then
+              EPIC_KEY="SMILE-AUTH-FLOW"
+            elif echo "$BRANCH" | grep -q "profile"; then
+              EPIC_KEY="SMILE-PROFILE-FLOW"
+            else
+              EPIC_KEY=""
+            fi
           elif echo "$BRANCH" | grep -q "backend\|P4"; then
-            COMPONENT="Backend" 
+            COMPONENT="Backend"
             ISSUE_TYPE="Story"
+            if echo "$BRANCH" | grep -q "auth"; then
+              EPIC_KEY="SMILE-AUTH-FLOW"
+            elif echo "$BRANCH" | grep -q "profile"; then
+              EPIC_KEY="SMILE-PROFILE-FLOW"
+            else
+              EPIC_KEY=""
+            fi
           else
             COMPONENT="General"
             ISSUE_TYPE="Task"
+            EPIC_KEY=""
           fi
           
           echo "Creating JIRA ticket: $JIRA_KEY"
           echo "Component: $COMPONENT"
           echo "Issue Type: $ISSUE_TYPE"
-          
-          # Create JIRA ticket
+          echo "Epic: $EPIC_KEY"
+
+          # Build epic link field if epic exists
+          EPIC_FIELD=""
+          if [ ! -z "$EPIC_KEY" ]; then
+            EPIC_FIELD=",\"parent\": {\"key\": \"$EPIC_KEY\"}"
+          fi
+
+          # Create JIRA ticket with enhanced fields
           response=$(curl -s -w "%{http_code}" -o /tmp/create_response.json \
             -X POST \
             -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
@@ -167,7 +189,8 @@ jobs:
                 },
                 \"issuetype\": {
                   \"name\": \"$ISSUE_TYPE\"
-                }
+                },
+                \"labels\": [\"auto-created\", \"github-pr\", \"$COMPONENT\"]$EPIC_FIELD
               }
             }")
           

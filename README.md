@@ -212,6 +212,10 @@ All documentation is organized in numbered folders for logical progression:
 - CI/CD pipeline and automated quality assurance
 - **🎯 Process Flow JIRA Workflow** - Automated tracking for authentication and profile creation
 - **🛠️ Process Flow Implementation Guidelines** - Detailed technical guidelines for development teams
+- **📋 JIRA Project Configuration Guide** - Complete JIRA project setup with custom fields and workflows
+- **🤖 Advanced JIRA Automation Features** - Epic tracking, story estimation, and team assignment automation
+- **📊 JIRA Dashboard and Reporting Setup** - Comprehensive dashboards and automated reporting
+- **✅ JIRA Setup Complete Guide** - End-to-end JIRA implementation with timeline and success criteria
 
 ### **4. Backend Implementation** (`/docs/4_backend_implementation/`)
 - Microservices development and API implementation

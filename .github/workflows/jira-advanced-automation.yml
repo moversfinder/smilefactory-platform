@@ -1,0 +1,266 @@
+name: Advanced JIRA Automation
+
+on:
+  pull_request:
+    types: [opened, closed, ready_for_review, converted_to_draft]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issues:
+    types: [opened, closed, reopened]
+  push:
+    branches: [main, develop]
+
+env:
+  JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+  JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+jobs:
+  epic-management:
+    name: Epic and Story Management
+    runs-on: ubuntu-latest
+    if: ${{ env.JIRA_BASE_URL != '' && env.JIRA_EMAIL != '' && env.JIRA_API_TOKEN != '' }}
+    
+    steps:
+      - name: Extract JIRA key from PR title or commit
+        uses: actions-ecosystem/action-regex-match@v2
+        id: jira_key
+        with:
+          text: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+          regex: '^(SMILE|SF)-(\d+)'
+
+      - name: Skip if no JIRA key found
+        if: ${{ steps.jira_key.outputs.match == '' }}
+        run: |
+          echo "No JIRA key found. Skipping advanced JIRA automation."
+          exit 0
+
+      - name: Set JIRA key and determine epic
+        if: ${{ steps.jira_key.outputs.match != '' }}
+        id: set_context
+        run: |
+          JIRA_KEY="${{ steps.jira_key.outputs.group1 }}-${{ steps.jira_key.outputs.group2 }}"
+          echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+          
+          # Determine epic based on branch name or PR title
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          PR_TITLE="${{ github.event.pull_request.title || github.event.head_commit.message }}"
+          
+          if echo "$BRANCH $PR_TITLE" | grep -qi "auth"; then
+            echo "epic_key=SMILE-AUTH-FLOW" >> $GITHUB_OUTPUT
+            echo "process_flow=authentication" >> $GITHUB_OUTPUT
+          elif echo "$BRANCH $PR_TITLE" | grep -qi "profile"; then
+            echo "epic_key=SMILE-PROFILE-FLOW" >> $GITHUB_OUTPUT
+            echo "process_flow=profile-creation" >> $GITHUB_OUTPUT
+          else
+            echo "epic_key=" >> $GITHUB_OUTPUT
+            echo "process_flow=general" >> $GITHUB_OUTPUT
+          fi
+          
+          # Determine component
+          if echo "$BRANCH" | grep -q "frontend\|P5"; then
+            echo "component=Frontend" >> $GITHUB_OUTPUT
+          elif echo "$BRANCH" | grep -q "backend\|P4"; then
+            echo "component=Backend" >> $GITHUB_OUTPUT
+          else
+            echo "component=General" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update epic progress on PR merge
+        if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == true && steps.set_context.outputs.epic_key != '' }}
+        run: |
+          EPIC_KEY="${{ steps.set_context.outputs.epic_key }}"
+          JIRA_KEY="${{ steps.set_context.outputs.jira_key }}"
+          
+          echo "Updating epic progress for: $EPIC_KEY"
+          
+          # Get epic details and linked issues
+          epic_response=$(curl -s \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/search?jql=parent=$EPIC_KEY")
+          
+          # Count total and completed stories
+          total_stories=$(echo "$epic_response" | jq '.total // 0')
+          completed_stories=$(echo "$epic_response" | jq '[.issues[] | select(.fields.status.statusCategory.key == "done")] | length')
+          
+          if [ "$total_stories" -gt 0 ]; then
+            progress=$((completed_stories * 100 / total_stories))
+            echo "Epic progress: $completed_stories/$total_stories ($progress%)"
+            
+            # Add progress comment to epic
+            curl -s -X POST \
+              -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$EPIC_KEY/comment" \
+              -d "{
+                \"body\": {
+                  \"version\": 1,
+                  \"type\": \"doc\",
+                  \"content\": [
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"📊 Epic Progress Update: $completed_stories/$total_stories stories completed ($progress%)\"
+                        }
+                      ]
+                    },
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"✅ Latest completion: $JIRA_KEY merged\"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }"
+          fi
+
+      - name: Auto-assign based on component
+        if: ${{ github.event.action == 'opened' && github.event_name == 'pull_request' }}
+        run: |
+          JIRA_KEY="${{ steps.set_context.outputs.jira_key }}"
+          COMPONENT="${{ steps.set_context.outputs.component }}"
+          
+          # Define team assignments (update these with actual JIRA user IDs)
+          case "$COMPONENT" in
+            "Frontend")
+              ASSIGNEE_ID="frontend-dev-jira-id"  # Replace with actual JIRA user ID
+              ;;
+            "Backend")
+              ASSIGNEE_ID="backend-dev-jira-id"   # Replace with actual JIRA user ID
+              ;;
+            *)
+              ASSIGNEE_ID=""
+              ;;
+          esac
+          
+          if [ ! -z "$ASSIGNEE_ID" ]; then
+            echo "Auto-assigning $JIRA_KEY to $COMPONENT team member"
+            curl -s -X PUT \
+              -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/assignee" \
+              -d "{\"accountId\": \"$ASSIGNEE_ID\"}"
+          fi
+
+      - name: Add process flow labels
+        if: ${{ steps.set_context.outputs.process_flow != 'general' }}
+        run: |
+          JIRA_KEY="${{ steps.set_context.outputs.jira_key }}"
+          PROCESS_FLOW="${{ steps.set_context.outputs.process_flow }}"
+          
+          echo "Adding process flow labels to $JIRA_KEY"
+          
+          # Get current labels
+          current_labels=$(curl -s \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY?fields=labels" | jq -r '.fields.labels[]' | tr '\n' ',' | sed 's/,$//')
+          
+          # Add process flow label
+          new_labels="$current_labels,process-flow,$PROCESS_FLOW"
+          
+          curl -s -X PUT \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY" \
+            -d "{\"fields\": {\"labels\": [$(echo "$new_labels" | sed 's/,/","/g' | sed 's/^/"/;s/$/"/')]}}}"
+
+      - name: Estimate story points for process flow tickets
+        if: ${{ steps.set_context.outputs.process_flow != 'general' && github.event.action == 'opened' }}
+        run: |
+          JIRA_KEY="${{ steps.set_context.outputs.jira_key }}"
+          COMPONENT="${{ steps.set_context.outputs.component }}"
+          PROCESS_FLOW="${{ steps.set_context.outputs.process_flow }}"
+          
+          # Auto-estimate story points based on component and process flow
+          case "$COMPONENT-$PROCESS_FLOW" in
+            "Frontend-authentication")
+              STORY_POINTS=5
+              ;;
+            "Backend-authentication")
+              STORY_POINTS=8
+              ;;
+            "Frontend-profile-creation")
+              STORY_POINTS=8
+              ;;
+            "Backend-profile-creation")
+              STORY_POINTS=13
+              ;;
+            *)
+              STORY_POINTS=3
+              ;;
+          esac
+          
+          echo "Auto-estimating $JIRA_KEY with $STORY_POINTS story points"
+          
+          # Update story points (field ID may vary - commonly customfield_10016)
+          curl -s -X PUT \
+            -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY" \
+            -d "{\"fields\": {\"customfield_10016\": $STORY_POINTS}}"
+
+      - name: Create deployment tracking comment
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') }}
+        run: |
+          # Find JIRA keys in recent commits
+          COMMIT_MESSAGES=$(git log --oneline -10 --pretty=format:"%s")
+          JIRA_KEYS=$(echo "$COMMIT_MESSAGES" | grep -oE "(SMILE|SF)-[0-9]+" | sort -u)
+          
+          ENVIRONMENT=${{ github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}
+          
+          for JIRA_KEY in $JIRA_KEYS; do
+            echo "Adding deployment comment to $JIRA_KEY"
+            curl -s -X POST \
+              -u "${{ env.JIRA_EMAIL }}:${{ env.JIRA_API_TOKEN }}" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$JIRA_KEY/comment" \
+              -d "{
+                \"body\": {
+                  \"version\": 1,
+                  \"type\": \"doc\",
+                  \"content\": [
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"🚀 Deployed to $ENVIRONMENT environment\"
+                        }
+                      ]
+                    },
+                    {
+                      \"type\": \"paragraph\",
+                      \"content\": [
+                        {
+                          \"type\": \"text\",
+                          \"text\": \"Commit: ${{ github.sha }}\"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }"
+          done
+
+      - name: Summary
+        if: ${{ steps.jira_key.outputs.match != '' }}
+        run: |
+          echo "✅ Advanced JIRA automation completed"
+          echo "🎯 JIRA Key: ${{ steps.set_context.outputs.jira_key }}"
+          echo "📋 Epic: ${{ steps.set_context.outputs.epic_key }}"
+          echo "🔧 Component: ${{ steps.set_context.outputs.component }}"
+          echo "🔄 Process Flow: ${{ steps.set_context.outputs.process_flow }}"
+          echo "🔗 JIRA URL: ${{ env.JIRA_BASE_URL }}/browse/${{ steps.set_context.outputs.jira_key }}"
